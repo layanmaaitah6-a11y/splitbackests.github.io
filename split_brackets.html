@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Subtitle Bracket Splitter</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f7f7f7; padding:20px; }
+    .box { background:#fff; padding:20px; border-radius:10px; max-width:600px; margin:auto; }
+    button { padding:8px 15px; background:#007bff; color:#fff; border:none; border-radius:5px; cursor:pointer; }
+    button:hover { background:#0056b3; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Subtitle Bracket Splitter</h2>
+    <input type="file" id="fileInput" accept=".srt">
+    <br><br>
+    <button onclick="processFile()">Process</button>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    function processFile() {
+      const fileInput = document.getElementById('fileInput');
+      const status = document.getElementById('status');
+      if (!fileInput.files.length) { alert("Choose a file first"); return; }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        let lines = e.target.result.split(/\r?\n/);
+        let output = [];
+        let block = [];
+        let index = 1;
+
+        function flushBlock() {
+          if (block.length >= 3) {
+            let [num, time, ...textLines] = block;
+            let text = textLines.join(" ");
+
+            // split brackets
+            let parts = [];
+            text.replace(/(\[.*?\])/g, "|||$1|||")
+                .split("|||")
+                .filter(x => x.trim())
+                .forEach(p => parts.push(p.trim()));
+
+            parts.forEach(part => {
+              output.push(index++);
+              output.push(time);
+              output.push(part);
+              output.push(""); // blank line
+            });
+          }
+          block = [];
+        }
+
+        for (let line of lines) {
+          if (line.trim() === "") {
+            flushBlock();
+          } else {
+            block.push(line);
+          }
+        }
+        flushBlock();
+
+        const blob = new Blob([output.join("\n")], {type: "text/plain;charset=utf-8"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.name.replace(/\.srt$/i, "_split.srt");
+        a.click();
+
+        status.innerText = "✅ File processed!";
+      };
+
+      reader.readAsText(file, "UTF-8");
+    }
+  </script>
+</body>
+</html>
