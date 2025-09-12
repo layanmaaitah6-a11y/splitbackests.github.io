@@ -37,7 +37,7 @@
         function flushBlock() {
           if (block.length >= 3) {
             let [num, time, ...textLines] = block;
-            let text = textLines.join(" ");
+            let text = textLines.join("\\N");
 
             // split brackets
             let parts = [];
@@ -80,3 +80,4 @@
   </script>
 </body>
 </html>
+
