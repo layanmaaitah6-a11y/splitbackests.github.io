@@ -1,83 +1,368 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>Subtitle Bracket Splitter</title>
-  <style>
-    body { font-family: Arial, sans-serif; background:#f7f7f7; padding:20px; }
-    .box { background:#fff; padding:20px; border-radius:10px; max-width:600px; margin:auto; }
-    button { padding:8px 15px; background:#007bff; color:#fff; border:none; border-radius:5px; cursor:pointer; }
-    button:hover { background:#0056b3; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Subtitle Bracket Splitter — SRT & ASS</title>
+<style>
+:root{
+  --bg:#0f1724;
+  --card:#0b1220;
+  --muted:#9aa4b2;
+  --accent:#7c5cff;
+  --glass: rgba(255,255,255,0.04);
+  --success:#27c36a;
+
+  /* light mode */
+  --bg-light:#f9f9f9;
+  --card-light:#ffffff;
+  --muted-light:#555;
+  --accent-light:#7c5cff;
+  --success-light:#27c36a;
+  --text-light:#111;
+  --glass-light: rgba(0,0,0,0.03);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: linear-gradient(180deg,#071028 0%, #071833 60%);
+  color:#e6eef8;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:28px;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  direction:rtl;
+  transition: all .3s ease;
+}
+body.light{
+  background: var(--bg-light);
+  color: var(--text-light);
+}
+
+.wrap{
+  width:100%;
+  max-width:880px;
+  border-radius:14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  box-shadow: 0 10px 30px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+  padding:22px;
+  display:grid;
+  grid-template-columns: 1fr 360px;
+  gap:18px;
+  transition: all .3s ease;
+}
+body.light .wrap{
+  background: var(--card-light);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1), inset 0 1px 0 rgba(0,0,0,0.02);
+}
+
+.panel{
+  background: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.03);
+  padding:18px;
+  border-radius:10px;
+  transition: all .3s ease;
+}
+body.light .panel{
+  background: var(--card-light);
+  border-color: rgba(0,0,0,0.05);
+}
+
+header h1{
+  margin:0 0 6px 0;
+  font-size:20px;
+  letter-spacing:0.2px;
+}
+header p{ margin:0; color:var(--muted); font-size:13px }
+
+.drop{
+  margin-top:12px;
+  border:1px dashed rgba(255,255,255,0.04);
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+  padding:18px;
+  border-radius:8px;
+  text-align:center;
+  transition: all .18s ease;
+  cursor:pointer;
+}
+.drop.dragover{
+  border-color: rgba(124,92,255,0.9);
+  box-shadow: 0 6px 20px rgba(124,92,255,0.07);
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, rgba(124,92,255,0.03), rgba(124,92,255,0.01));
+}
+.drop p{ margin:0; color:var(--muted); font-size:14px }
+.small{ font-size:12px; color:var(--muted); margin-top:8px }
+body.light .drop{
+  border-color: rgba(0,0,0,0.2);
+  background: linear-gradient(180deg, rgba(0,0,0,0.01), rgba(0,0,0,0));
+}
+body.light .drop.dragover{
+  border-color: var(--accent-light);
+}
+
+.controls{ display:flex; gap:10px; margin-top:14px; align-items:center; flex-wrap:wrap }
+.btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:linear-gradient(90deg,var(--accent), #5b7bff);
+  border:none;
+  color:white;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow: 0 6px 18px rgba(124,92,255,0.12);
+}
+.btn.ghost{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.04);
+  color:var(--muted);
+  font-weight:600;
+}
+body.light .btn.ghost{
+  border:1px solid rgba(0,0,0,0.1);
+  color: var(--muted-light);
+}
+
+input[type=file]{ display:none }
+
+.meta{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.card{
+  background:var(--card);
+  border-radius:10px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,0.02);
+  transition: all .3s ease;
+}
+body.light .card{
+  background: var(--card-light);
+  border-color: rgba(0,0,0,0.05);
+}
+
+.status{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  color:var(--muted);
+  font-size:13px;
+}
+body.light .status, body.light .hint, body.light ul{ color: var(--muted-light); }
+
+.ok{ color:var(--success); font-weight:700 }
+.hint{ color:var(--muted); font-size:12px }
+
+textarea{
+  width:100%;
+  height:260px;
+  resize:vertical;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.03);
+  background: rgba(2,6,23,0.6);
+  color:#dfeaff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+  font-size:13px;
+  line-height:1.45;
+  transition: all .3s ease;
+}
+body.light textarea{
+  background: rgba(255,255,255,0.9);
+  color: #111;
+  border:1px solid rgba(0,0,0,0.1);
+}
+
+footer{ grid-column: 1 / -1; text-align:center; color:var(--muted); font-size:12px; margin-top:6px }
+@media (max-width:880px){
+  .wrap{ grid-template-columns: 1fr; padding:14px }
+  textarea{ height:200px }
+}
+</style>
 </head>
 <body>
-  <div class="box">
-    <h2>Subtitle Bracket Splitter</h2>
-    <input type="file" id="fileInput" accept=".srt">
-    <br><br>
-    <button onclick="processFile()">Process</button>
-    <p id="status"></p>
+<div class="wrap" role="application" aria-label="Subtitle Bracket Splitter">
+  <div class="panel">
+    <header style="display:flex; justify-content:space-between; align-items:center;">
+      <h1>فاصِـل تعلـيـقات</h1>
+      <button id="themeToggle" class="btn ghost" style="font-size:12px; padding:6px 10px;">🌞 وضع أبيض</button>
+    </header>
+
+    <label id="drop" class="drop" tabindex="0">
+      <input id="fileInput" type="file" accept=".srt,.ass">
+      <p><strong id="dropText">اسحب الملف هنا أو اضغط لاختياره</strong></p>
+    </label>
+
+    <div class="controls">
+      <button id="processBtn" class="btn" title="Process file">🔧 معالجة</button>
+      <button id="clearBtn" class="btn ghost" title="تفريغ المعاينة">🧹 تفريغ المعاينة</button>
+      <div style="flex:1"></div>
+      <div class="hint">ملاحظة: التترات التي تحتوي فقط على <code>\N</code> سأتجاهلها.</div>
+    </div>
+
+    <div style="margin-top:14px">
+      <textarea id="preview" placeholder="هنا ستظهر معاينة النص المُعالج (لأغراض العرض فقط) — اضغط معالجة لرؤية النتيجة"></textarea>
+    </div>
   </div>
 
-  <script>
-    function processFile() {
-      const fileInput = document.getElementById('fileInput');
-      const status = document.getElementById('status');
-      if (!fileInput.files.length) { alert("Choose a file first"); return; }
+  <div class="meta">
+    <div class="card">
+      <div class="status"><strong>الحالة:</strong> <span id="statusText">في انتظار ملف...</span></div>
+      <div style="height:10px"></div>
+      <div class="status"><strong>الملف:</strong> <span id="fileName" style="color:var(--muted)">لا يوجد</span></div>
+      <div class="status"><strong>النوع:</strong> <span id="fileType" style="color:var(--muted)">—</span></div>
+    </div>
 
-      const file = fileInput.files[0];
-      const reader = new FileReader();
+    <div class="card">
+      <strong>إرشادات سريعة</strong>
+      <ul style="margin:8px 0 0 0; padding-left:16px; color:var(--muted); font-size:13px">
+        <li>يدعم كلًّا من .ass و .srt.</li>
+        <li>لا يغير توقيت أو ستايل التترات.</li>
+        <li>لا يضيف تترات تحتوي فقط على <code>\N</code>.</li>
+      </ul>
+    </div>
 
-      reader.onload = function(e) {
-        let lines = e.target.result.split(/\r?\n/);
-        let output = [];
-        let block = [];
-        let index = 1;
+    <div class="card">
+      <strong>ناتج المعالجة</strong>
+      <div id="resultStats" style="margin-top:8px;color:var(--muted);font-size:13px">لا شيء بعد.</div>
+    </div>
+  </div>
+</div>
 
-        function flushBlock() {
-          if (block.length >= 3) {
-            let [num, time, ...textLines] = block;
-            let text = textLines.join("\\N");
+<script>
+const fileInput = document.getElementById('fileInput');
+const drop = document.getElementById('drop');
+const statusText = document.getElementById('statusText');
+const fileNameEl = document.getElementById('fileName');
+const fileTypeEl = document.getElementById('fileType');
+const preview = document.getElementById('preview');
+const processBtn = document.getElementById('processBtn');
+const clearBtn = document.getElementById('clearBtn');
+const resultStats = document.getElementById('resultStats');
+const themeToggle = document.getElementById('themeToggle');
 
-            // split brackets
-            let parts = [];
-            text.replace(/(\[.*?\])/g, "|||$1|||")
-                .split("|||")
-                .filter(x => x.trim())
-                .forEach(p => parts.push(p.trim()));
+let currentFile = null;
 
-            parts.forEach(part => {
-              output.push(index++);
-              output.push(time);
-              output.push(part);
-              output.push(""); // blank line
-            });
-          }
-          block = [];
+// toggle theme
+themeToggle.addEventListener('click', ()=>{
+  document.body.classList.toggle('light');
+  themeToggle.textContent = document.body.classList.contains('light') ? "🌙" : "🌞";
+});
+
+// drag & drop
+['dragenter','dragover'].forEach(evt => {
+  drop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); drop.classList.add('dragover'); });
+});
+['dragleave','drop'].forEach(evt => {
+  drop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); drop.classList.remove('dragover'); });
+});
+drop.addEventListener('drop', e => {
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if(f) setFile(f);
+});
+drop.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', e => { if(e.target.files[0]) setFile(e.target.files[0]); });
+
+function setFile(f){
+  currentFile = f;
+  fileNameEl.textContent = f.name;
+  fileTypeEl.textContent = (f.name.split('.').pop() || '—').toUpperCase();
+  statusText.textContent = 'جاهز للمعالجة';
+  preview.value = '';
+  resultStats.textContent = 'ملف جاهز — اضغط "معالجة"';
+}
+
+clearBtn.addEventListener('click', ()=>{
+  preview.value = '';
+  resultStats.textContent = 'المعاينة مفروغة';
+  statusText.textContent = currentFile ? 'جاهز للمعالجة' : 'في انتظار ملف...';
+});
+
+processBtn.addEventListener('click', ()=>{
+  if(!currentFile){ alert('اختَر ملف أولاً (SRT أو ASS)'); return; }
+  processFile(currentFile);
+});
+
+function processFile(file){
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if(!['srt','ass'].includes(ext)){ alert('الملف ليس srt أو ass'); return; }
+
+  statusText.textContent = 'المعالجة جارية...';
+  preview.value = '';
+  resultStats.textContent = 'يتم الآن...';
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    let content = e.target.result;
+    let output = [];
+    let partsCount = 0, removedCount = 0;
+
+    if(ext === 'srt'){
+      let lines = content.split(/\r?\n/);
+      let block = [];
+      let index = 1;
+
+      function flushBlock(){
+        if(block.length>=3){
+          let [num,time,...textLines] = block;
+          let text = textLines.join("\\N");
+          let parts = [];
+          text.replace(/(\[.*?\])/g,"|||$1|||").split("|||").filter(x=>x.trim()).forEach(p=>parts.push(p.trim()));
+          parts.forEach(part=>{
+            if(part!=="\\N"){
+              output.push(index++); output.push(time); output.push(part); output.push(""); partsCount++;
+            } else removedCount++;
+          });
         }
-
-        for (let line of lines) {
-          if (line.trim() === "") {
-            flushBlock();
-          } else {
-            block.push(line);
-          }
-        }
-        flushBlock();
-
-        const blob = new Blob([output.join("\n")], {type: "text/plain;charset=utf-8"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = file.name.replace(/\.srt$/i, "_split.srt");
-        a.click();
-
-        status.innerText = "✅ File processed!";
-      };
-
-      reader.readAsText(file, "UTF-8");
+        block=[];
+      }
+      for(let line of lines){ if(line.trim()==="") flushBlock(); else block.push(line); }
+      flushBlock();
+    } else if(ext==='ass'){
+      let lines = content.split(/\r?\n/);
+      lines.forEach(line=>{
+        if(line.startsWith("Dialogue:")){
+          let fields=line.split(",");
+          if(fields.length<10){ output.push(line); return; }
+          let header=fields.slice(0,9).join(",");
+          let text=fields.slice(9).join(",");
+          let splitParts=[];
+          text.replace(/(\[.*?\])/g,"|||$1|||").split("|||").filter(x=>x.trim()).forEach(p=>splitParts.push(p.trim()));
+          splitParts.forEach(sp=>{
+            if(sp!=="\\N"){ output.push(header+","+sp); partsCount++; } else removedCount++;
+          });
+        } else { output.push(line); }
+      });
     }
-  </script>
+
+    let joined = output.join("\n");
+    preview.value = joined.length>30000 ? joined.slice(0,30000)+"\n\n...preview truncated..." : joined;
+
+    const blob = new Blob([output.join("\n")], {type: "text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const base = file.name.replace(/\.(srt|ass)$/i,'');
+    a.download = base+"_split."+ext;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    statusText.textContent = 'تمت المعالجة';
+    resultStats.textContent = `أُضيفت ${partsCount} تترات. جوهلت ${removedCount} تتر يحتوي فقط على \\N.`;
+  };
+  reader.readAsText(file,"UTF-8");
+}
+
+// keyboard accessibility
+drop.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') fileInput.click(); });
+</script>
 </body>
 </html>
-
